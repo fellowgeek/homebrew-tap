@@ -13,18 +13,18 @@ cask "weblet" do
   binary "weblet-wrapper", target: "weblet"
 
   # Create and permission the wrapper script
-  postflight do
-    wrapper_path = "#{staged_path}/weblet-wrapper"
-    
-    File.write(wrapper_path, <<~SH)
+  preflight do
+    wrapper_script = "#{staged_path}/weblet-wrapper"
+
+    File.write(wrapper_script, <<~SH)
       #!/bin/sh
-      # Launch the app via macOS Launch Services
+      # Launch the app via macOS Launch Services to avoid terminal hang
       exec open -a "#{appdir}/weblet.app" "$@"
     SH
-    
-    FileUtils.chmod("+x", wrapper_path)
+
+    FileUtils.chmod("+x", wrapper_script)
   end
-  
+
   zap trash: [
     "~/Library/Application Support/weblet",
     "~/Library/Preferences/com.weblet.fellowgeek.enClose.plist",
