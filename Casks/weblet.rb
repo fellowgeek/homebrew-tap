@@ -8,7 +8,23 @@ cask "weblet" do
   homepage "https://github.com/fellowgeek/weblet"
 
   app "weblet.app"
-  binary "#{appdir}/weblet.app/Contents/MacOS/weblet"
+
+  # Creates a shim script so 'weblet' works in the terminal
+  binary "weblet-wrapper", target: "weblet"
+
+  # This block creates the actual executable script during installation
+  preflight do
+    File.write "#{staged_path}/weblet_wrapper", <<~SH
+      #!/bin/sh
+      # This launches the app via the macOS Launch Services
+      open -a "#{appdir}/weblet.app" "$@"
+    SH
+  end
+
+  # Makes the shim script executable
+  postflight do
+    system_command "/bin/chmod", args: ["+x", "#{staged_path}/weblet_wrapper"], sudo: false
+  end
 
   zap trash: [
     "~/Library/Application Support/weblet",
