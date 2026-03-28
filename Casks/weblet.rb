@@ -12,20 +12,19 @@ cask "weblet" do
   # Creates a shim script so 'weblet' works in the terminal
   binary "weblet-wrapper", target: "weblet"
 
-  # This block creates the actual executable script during installation
-  preflight do
-    File.write "#{staged_path}/weblet_wrapper", <<~SH
-      #!/bin/sh
-      # This launches the app via the macOS Launch Services
-      open -a "#{appdir}/weblet.app" "$@"
-    SH
-  end
-
-  # Makes the shim script executable
+  # Create and permission the wrapper script
   postflight do
-    system_command "/bin/chmod", args: ["+x", "#{staged_path}/weblet_wrapper"], sudo: false
+    wrapper_path = "#{staged_path}/weblet-wrapper"
+    
+    File.write(wrapper_path, <<~SH)
+      #!/bin/sh
+      # Launch the app via macOS Launch Services
+      exec open -a "#{appdir}/weblet.app" "$@"
+    SH
+    
+    FileUtils.chmod("+x", wrapper_path)
   end
-
+  
   zap trash: [
     "~/Library/Application Support/weblet",
     "~/Library/Preferences/com.weblet.fellowgeek.enClose.plist",
